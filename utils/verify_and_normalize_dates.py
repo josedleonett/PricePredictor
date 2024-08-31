@@ -44,7 +44,7 @@ def verify_and_normalize_dates(root_path):
 
         def is_valid_date(date_str):
             try:
-                pd.to_datetime(date_str, format='%Y-%m-%d')
+                pd.to_datetime(date_str, format='%Y-%m-%d', errors='raise')
                 return True
             except ValueError:
                 return False
@@ -53,29 +53,30 @@ def verify_and_normalize_dates(root_path):
 
         # Si hay fechas en formato incorrecto, se corrige
         if not incorrect_dates.empty:
-            print_console("warning", f"El archivo {file_name} tiene {len(incorrect_dates)} fechas en formato incorrecto. Corrigiendo...")
+            print_console("warning", f"El archivo {file_path} tiene {len(incorrect_dates)} fechas en formato incorrecto. Corrigiendo...")
 
             corrected_count = 0
-            for i, date in incorrect_dates.iterrows():
+            for idx in incorrect_dates.index:
+                date = df.at[idx, 'fecha']
                 try:
-                    corrected_date = pd.to_datetime(date['fecha'], errors='coerce').strftime('%Y-%m-%d')
+                    corrected_date = pd.to_datetime(date, errors='coerce').strftime('%Y-%m-%d')
                     if pd.notna(corrected_date):
-                        df.at[i, 'fecha'] = corrected_date
+                        df.at[idx, 'fecha'] = corrected_date
                         corrected_count += 1
-                        print_console("info", f"Fecha corregida en fila {i}: {date['fecha']} -> {corrected_date}")
+                        print_console("info", f"Fecha corregida en fila {idx + 2}: {date} -> {corrected_date}")
                     else:
-                        print_console("error", f"No se pudo corregir la fecha en fila {i}: {date['fecha']}")
+                        print_console("error", f"No se pudo corregir la fecha en fila {idx + 2}: {date}")
                 except Exception as e:
-                    print_console("error", f"Error al corregir la fecha en fila {i}: {date['fecha']} - {e}")
+                    print_console("error", f"Error al corregir la fecha en fila {idx + 2}: {date} Correcion manual requerida - {e}")
 
             # Guardar el DataFrame corregido en el archivo CSV
             df.to_csv(file_path, index=False, sep=';')
 
             if df[~df['fecha'].apply(is_valid_date)].empty:
-                print_console("success", f"Se han corregido {corrected_count} fechas en el archivo {file_name}")
+                print_console("success", f"Se han corregido {corrected_count} fechas en el archivo {file_path}")
             else:
                 remaining_incorrect = len(df[~df['fecha'].apply(is_valid_date)])
-                print_console("error", f"El archivo {file_name} tiene {remaining_incorrect} fechas que no se pudieron corregir")
+                print_console("error", f"El archivo {file_path} tiene {remaining_incorrect} fechas que no se pudieron corregir")
                 errors.append(406)
 
     if not errors:
