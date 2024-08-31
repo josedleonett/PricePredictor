@@ -38,35 +38,52 @@
 import os
 import pandas as pd
 
-def convert_to_monthly_data(root_path):
-    if not os.path.exists(root_path):
-        return 404  # Not Found
+from utils.print_console import print_console
+
+def convert_to_monthly_data(input_path, output_path):
+    if not os.path.exists(input_path):
+        print_console("error", f"No se encuentra el directorio especificado: {input_path}")
+        return 404
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path, exist_ok=True)
 
     try:
-        for file_name in os.listdir(root_path):
-            file_path = os.path.join(root_path, file_name)
+        total_files = 0
+        processed_files = 0
+        for file_name in os.listdir(input_path):
+            file_path = os.path.join(input_path, file_name)
             
             if os.path.isdir(file_path):
-                continue  # Ignorar carpetas
+                continue
+
+            total_files += 1
 
             if not file_name.endswith('.csv'):
-                return 403  # Forbidden
+                print_console("warning", f"El archivo {file_name} no es un CSV. Se omitirá.")
+                continue
 
             try:
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, delimiter=';')
             except Exception as e:
-                return 500  # Internal Server Error
+                print_console("error", f"Error al leer el archivo {file_name}: {e}")
+                continue
 
             if 'fecha' not in df.columns:
-                return 400  # Bad Request
+                print_console("error", f"El archivo {file_name} no tiene la columna 'fecha'. Se omitirá.")
+                continue
 
-            # Agrupar por mes y guardar solo el último día de cada mes
-            df['fecha'] = pd.to_datetime(df['fecha'])
-            df = df.set_index('fecha').resample('M').last().reset_index()
-            preprocessed_path = os.path.join(root_path, 'preprocessed')
-            os.makedirs(preprocessed_path, exist_ok=True)
-            df.to_csv(os.path.join(preprocessed_path, file_name), index=False)
+            try:
+                df['fecha'] = pd.to_datetime(df['fecha'])
+                df = df.set_index('fecha').resample('ME').last().reset_index()
+                df.to_csv(os.path.join(output_path, file_name), index=False)
+                processed_files += 1
+                print_console("", f"El archivo {file_name} se ha convertido a datos mensuales.")
+            except Exception as e:
+                print_console("error", f"Error al pre-procesar el archivo {file_name}: {e}")
 
-        return 200  # OK
+        print_console("success", f"Se han pre-procesado {processed_files} de {total_files} archivos en {input_path}.")
+        return 200 if processed_files > 0 else 400
     except Exception as e:
-        return 500  # Internal Server Error
+        print_console("error", f"Error al convertir los archivos a datos mensuales: {e}")
+        return 500
