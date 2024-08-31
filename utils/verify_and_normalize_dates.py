@@ -15,7 +15,7 @@ def verify_and_normalize_dates(root_path):
     400: bad request - El archivo no tiene la columna 'fecha'
     406: not acceptable - El formato de la fecha no es YYYY-MM-DD
     """
-    print_console("", "Verificando si las fechas están normalizadas")
+    print_console("", f"Verificando si las fechas están normalizadas en {root_path}")
 
     if not os.path.exists(root_path):
         print_console("error", f"No se encuentra el directorio especificado {root_path}")
@@ -25,6 +25,10 @@ def verify_and_normalize_dates(root_path):
 
     for file_name in os.listdir(root_path):
         file_path = os.path.join(root_path, file_name)
+        # Ignorar carpetas
+        if os.path.isdir(file_path):
+            continue
+        # Verificar si el archivo es un CSV
         if not file_name.endswith('.csv'):
             print_console("error", f"El archivo {file_name} no es un CSV")
             errors.append(403)

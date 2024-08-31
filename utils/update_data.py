@@ -5,7 +5,7 @@ from request.get_inflacion_mensual_oficial import get_inflacion_mensual_oficial
 from utils.print_console import print_console
 
 
-def update_data():
+def update_data(temp_path):
     """
     Obtiene los datos de las APIs y los guarda en la carpeta /temp
     """
@@ -26,7 +26,7 @@ def update_data():
     # y asi sucesivamente
 
     for key, value in data.items():
-        with open(f'temp/{key}.csv', 'w', newline='') as file:
+        with open(f'{temp_path}/{key}.csv', 'w', newline='') as file:
             writer = csv.writer(file, delimiter=';')
             writer.writerow(['fecha', key])
             if isinstance(value, list):
