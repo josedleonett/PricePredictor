@@ -27,12 +27,12 @@ def update_data():
 
     for key, value in data.items():
         with open(f'temp/{key}.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, delimiter=';')
             writer.writerow(['fecha', key])
             if isinstance(value, list):
                 for item in value:
                     if isinstance(item, dict) and 'fecha' in item and 'valor' in item:
-                        writer.writerow([item['fecha'], item['valor']])  # Escribir datos
+                        writer.writerow([item['fecha'], item['valor']])
                     else:
                         print_console("warning", f"Advertencia: Elemento de la lista no tiene el formato esperado para la clave {key}")
             else:

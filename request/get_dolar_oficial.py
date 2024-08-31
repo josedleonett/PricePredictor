@@ -2,10 +2,11 @@ import requests
 from datetime import datetime
 
 from utils.print_console import print_console
+from config import DOLAR_OFICIAL_API_URL, DOLAR_OFICIAL_API_TOKEN
 
 # Parámetros
-api_url = "https://api.estadisticasbcra.com/usd_of"
-token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTYyNjEzMzgsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJqb3NlZC45NUBnbWFpbC5jb20ifQ.UG71DSBLw2V6qg7NjxlsbGe0FSOmApXXv16saNZi3SHNM63nkWahuZi94AXdpJWJbmUAzoUVFLC8yImq6paOPw"
+api_url = DOLAR_OFICIAL_API_URL
+token = DOLAR_OFICIAL_API_TOKEN
 
 headers = {
     "Authorization": "Bearer " + token
@@ -39,5 +40,5 @@ def get_dolar_oficial():
         return processed_data
 
     else:
-        print_console("error", "Error al obtener los datos de la API:", response.status_code)
+        print_console("error", "Error al obtener los datos de la API Dolar Oficial: " + str(response.status_code))
         return False
